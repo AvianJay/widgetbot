@@ -59,7 +59,7 @@
   },
   "scripts": {
     "start": "react-scripts-ts start",
-    "build": "react-scripts-ts build",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
     "eject": "react-scripts-ts eject",
     "pull": "git stash && git pull && yarn && yarn build",

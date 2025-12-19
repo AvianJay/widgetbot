@@ -10,6 +10,29 @@ import Modal from '../components/Modal'
 import ChooseChannel from '../components/Overlays/ChooseChannel'
 import AdminAuth from '../components/AdminAuth'
 
+// Check if user is authenticated
+const isAuthenticated = () => {
+  return !!localStorage.getItem('adminUserId')
+}
+
+// Initialize socket.io with admin user ID
+const initializeWithAuth = () => {
+  const adminUserId = localStorage.getItem('adminUserId')
+  if (adminUserId) {
+    (window as any).adminUserId = adminUserId
+    initiate()
+  }
+}
+
+// Handle authentication
+const handleAuthenticate = (userId: string) => {
+  localStorage.setItem('adminUserId', userId)
+  ;(window as any).adminUserId = userId
+  initiate()
+  // Force reload to reinitialize the app
+  window.location.reload()
+}
+
 // SocketIO
 export default connect()
   .with(({ state, signals, props }) => ({
@@ -20,37 +43,18 @@ export default connect()
   .toClass(
     props =>
       class App extends React.PureComponent<typeof props> {
-        state = {
-          isAuthenticated: false,
-          adminUserId: null
-        }
-
         componentDidMount() {
-          // Check for stored authentication
-          const storedUserId = localStorage.getItem('adminUserId')
-          if (storedUserId) {
-            this.handleAuthenticate(storedUserId)
+          if (isAuthenticated()) {
+            initializeWithAuth()
           }
-        }
-
-        handleAuthenticate = (userId: string) => {
-          // Store user ID for API requests
-          this.setState({ isAuthenticated: true, adminUserId: userId })
-          
-          // Store in window for API requests
-          (window as any).adminUserId = userId
-          
-          // Initialize socket.io after authentication
-          initiate()
         }
 
         render() {
           const { screen, locale, translation } = this.props
-          const { isAuthenticated } = this.state
 
           // Show admin authentication screen if not authenticated
-          if (!isAuthenticated) {
-            return <AdminAuth onAuthenticate={this.handleAuthenticate} />
+          if (!isAuthenticated()) {
+            return <AdminAuth onAuthenticate={handleAuthenticate} />
           }
 
           return (
