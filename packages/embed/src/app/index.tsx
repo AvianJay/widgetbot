@@ -8,6 +8,7 @@ import Channels from '../components/Channels'
 import Messages from '../components/Messages'
 import Modal from '../components/Modal'
 import ChooseChannel from '../components/Overlays/ChooseChannel'
+import AdminAuth from '../components/AdminAuth'
 
 // SocketIO
 export default connect()
@@ -19,12 +20,38 @@ export default connect()
   .toClass(
     props =>
       class App extends React.PureComponent<typeof props> {
+        state = {
+          isAuthenticated: false,
+          adminUserId: null
+        }
+
         componentDidMount() {
+          // Check for stored authentication
+          const storedUserId = localStorage.getItem('adminUserId')
+          if (storedUserId) {
+            this.handleAuthenticate(storedUserId)
+          }
+        }
+
+        handleAuthenticate = (userId: string) => {
+          // Store user ID for API requests
+          this.setState({ isAuthenticated: true, adminUserId: userId })
+          
+          // Store in window for API requests
+          (window as any).adminUserId = userId
+          
+          // Initialize socket.io after authentication
           initiate()
         }
 
         render() {
           const { screen, locale, translation } = this.props
+          const { isAuthenticated } = this.state
+
+          // Show admin authentication screen if not authenticated
+          if (!isAuthenticated) {
+            return <AdminAuth onAuthenticate={this.handleAuthenticate} />
+          }
 
           return (
             <IntlProvider

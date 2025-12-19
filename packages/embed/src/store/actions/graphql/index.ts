@@ -1,6 +1,6 @@
 import { Dictionary } from '@cerebral/fluent'
 import { BranchContext, Context } from 'fluent'
-import { request } from 'graphql-request'
+import { request, GraphQLClient } from 'graphql-request'
 import * as _ from 'lodash'
 import Log from 'logger'
 import * as queries from 'queries'
@@ -9,6 +9,22 @@ import { subscribe } from 'socket-io'
 
 import { Channel, ChannelResponse, ServerResponse } from '../../../types/responses'
 import { getLast } from '../util'
+
+// Helper function to make GraphQL requests with admin authentication
+function makeRequest(query: string, variables?: any) {
+  const adminUserId = (window as any).adminUserId || localStorage.getItem('adminUserId')
+  
+  if (adminUserId) {
+    const client = new GraphQLClient('/api/graphql', {
+      headers: {
+        'x-user-id': adminUserId
+      }
+    })
+    return client.request(query, variables)
+  }
+  
+  return request('/api/graphql', query, variables)
+}
 
 const serverIssues = {
   level: 'warning',
@@ -57,7 +73,7 @@ namespace GraphQL {
     Log('info', `Fetching server`, state.server.id, ...(loadMessages ? [`with messages on channel`, state.activeChannel] : []))
 
     try {
-      const response = (await request('/api/graphql', queries.server, variables)) as ServerResponse
+      const response = (await makeRequest(queries.server, variables)) as ServerResponse
 
       if (loadMessages) {
         subscribe(state.activeChannel)
@@ -108,7 +124,7 @@ namespace GraphQL {
     // Uncached
 
     try {
-      const response = (await request('/api/graphql', queries.channel, {
+      const response = (await makeRequest(queries.channel, {
         server: state.server.id,
         channel: state.activeChannel
       })) as ChannelResponse

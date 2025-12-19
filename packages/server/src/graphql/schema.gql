@@ -181,6 +181,46 @@ type Message {
   type: String!
 }
 
+type ContentHistoryEntry {
+  "Content of the message at this point in time"
+  content: String!
+  "Timestamp when this version was created"
+  timestamp: Float!
+  "Timestamp when this message was edited (if applicable)"
+  editedAt: Float
+}
+
+type MessageHistoryEntry {
+  "Original message ID from Discord"
+  messageId: String!
+  "Channel ID where the message was sent"
+  channelId: String!
+  "Server/Guild ID"
+  serverId: String!
+  "Channel name (preserved even if channel is deleted)"
+  channelName: String!
+  "Message author information"
+  author: Author!
+  "History of all edits to this message"
+  contentHistory: [ContentHistoryEntry]!
+  "Current message content"
+  currentContent: String
+  "Message creation timestamp"
+  createdAt: Float!
+  "Message deletion timestamp (if deleted)"
+  deletedAt: Float
+  "User who deleted the message"
+  deletedBy: String
+  "Message embeds"
+  embeds: [Embed]
+  "Message attachments"
+  attachments: [Attachment]
+  "Message reactions"
+  reactions: [Reaction]
+  "Message type"
+  type: String
+}
+
 type Query {
   "Bot invite URL"
   invite: String!
@@ -188,6 +228,10 @@ type Query {
   server(id: String): Server
   "Bot statistics"
   stats: Stats
+  "Get message history for a channel (Admin only)"
+  channelHistory(serverId: String!, channelId: String!, limit: Int): [MessageHistoryEntry]
+  "Get message history for a server (Admin only)"
+  serverHistory(serverId: String!, limit: Int): [MessageHistoryEntry]
 }
 
 type Reaction {
