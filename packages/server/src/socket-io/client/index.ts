@@ -32,11 +32,10 @@ class SocketController extends Controller {
 
     // Flows
     socket.on('register', this.register.bind(this))
-    socket.on('signUp', this.handleSignUp.bind(this))
-
-    // Message events
-    socket.on('sendMessage', this.handleMessage.bind(this))
-    socket.on('typing', this.typing.bind(this))
+    // Message sending disabled - this is now a read-only message logger
+    // socket.on('signUp', this.handleSignUp.bind(this))
+    // socket.on('sendMessage', this.handleMessage.bind(this))
+    // socket.on('typing', this.typing.bind(this))
 
     // Interactive events
     socket.on('invite', this.invite.bind(this))

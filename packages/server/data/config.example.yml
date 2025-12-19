@@ -22,9 +22,8 @@ discord:
     - ${shard} • ${messageCount} messages
     - ${shard} • ${guildCount} guilds
 
-  admins:  # TODO add your admins and remove entries you don't use
-    - 'admin-id-1'
-    - 'admin-id-2'
+  admins:  # IMPORTANT: Add Discord User IDs of admins who can access the message logger
+    - 'your-discord-user-id-here'  # Replace with actual Discord User ID (right-click user > Copy ID)
 
 express:
   port: 7000

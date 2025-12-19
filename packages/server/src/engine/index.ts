@@ -7,11 +7,13 @@ import inCache from 'engine/inCache'
 import options from 'engine/options'
 import PlayingStatus from 'engine/util/playing-status'
 import logger, { Meta } from 'logger'
+import messageHistoryService from 'database/message-history'
 
 import { io } from 'app'
 import Guests from './guests'
 import MessageStore from './message-store'
 import Parse from './util/parse'
+import fetchChannel from './util/fetchChannel'
 
 export const client = new Client(options)
 export const cache = new MessageStore()
@@ -41,6 +43,14 @@ export async function Login(token: string) {
       const message = await Parse(data)
       cache.pushMessage({ server, channel }, message)
 
+      // Log message to history database
+      try {
+        const channelData = await fetchChannel({ server, channel }, null)
+        await messageHistoryService.logMessage(message, server, channel, channelData.channel.name)
+      } catch (error) {
+        logger.error('Failed to log message to history', { error })
+      }
+
       io.to(`${server}/${channel}`).emit('message', {
         channel,
         message
@@ -56,6 +66,14 @@ export async function Login(token: string) {
       const message = await Parse(data as Discord.Message)
       cache.editMessage({ server, channel }, message)
 
+      // Log message edit to history database
+      try {
+        const channelData = await fetchChannel({ server, channel }, null)
+        await messageHistoryService.logMessageEdit(message, server, channel, channelData.channel.name)
+      } catch (error) {
+        logger.error('Failed to log message edit to history', { error })
+      }
+
       io.to(`${server}/${channel}`).emit('messageUpdate', {
         channel,
         message
@@ -69,6 +87,13 @@ export async function Login(token: string) {
   client.on('messageDelete', data => {
     inCache(data, async ({ server, channel }) => {
       cache.deleteMessage({ server, channel }, data.id)
+
+      // Log message deletion to history database
+      try {
+        await messageHistoryService.logMessageDeletion(data.id, server, channel)
+      } catch (error) {
+        logger.error('Failed to log message deletion to history', { error })
+      }
 
       io.to(`${server}/${channel}`).emit('messageDelete', {
         channel,
@@ -84,6 +109,15 @@ export async function Login(token: string) {
       const ids = messages.map(message => message.id)
 
       cache.deleteMessage({ server, channel }, ids)
+
+      // Log bulk message deletions to history database
+      try {
+        for (const id of ids) {
+          await messageHistoryService.logMessageDeletion(id, server, channel)
+        }
+      } catch (error) {
+        logger.error('Failed to log bulk message deletion to history', { error })
+      }
 
       io.to(`${server}/${channel}`).emit('messageDeleteBulk', {
         channel,

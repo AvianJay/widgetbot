@@ -14,7 +14,7 @@ const Stores = <T extends string, U = { [K in T]: typeof Datastore }>(
 }
 
 // Export the store
-export const store = Stores(['servers', 'guests'])
+export const store = Stores(['servers', 'guests', 'messageHistory'])
 
 // Connects to the database
 export async function connect() {

@@ -8,6 +8,30 @@ import Channels from '../components/Channels'
 import Messages from '../components/Messages'
 import Modal from '../components/Modal'
 import ChooseChannel from '../components/Overlays/ChooseChannel'
+import AdminAuth from '../components/AdminAuth'
+
+// Check if user is authenticated
+const isAuthenticated = () => {
+  return !!localStorage.getItem('adminUserId')
+}
+
+// Initialize socket.io with admin user ID
+const initializeWithAuth = () => {
+  const adminUserId = localStorage.getItem('adminUserId')
+  if (adminUserId) {
+    (window as any).adminUserId = adminUserId
+    initiate()
+  }
+}
+
+// Handle authentication
+const handleAuthenticate = (userId: string) => {
+  localStorage.setItem('adminUserId', userId)
+  ;(window as any).adminUserId = userId
+  initiate()
+  // Force reload to reinitialize the app
+  window.location.reload()
+}
 
 // SocketIO
 export default connect()
@@ -20,11 +44,18 @@ export default connect()
     props =>
       class App extends React.PureComponent<typeof props> {
         componentDidMount() {
-          initiate()
+          if (isAuthenticated()) {
+            initializeWithAuth()
+          }
         }
 
         render() {
           const { screen, locale, translation } = this.props
+
+          // Show admin authentication screen if not authenticated
+          if (!isAuthenticated()) {
+            return <AdminAuth onAuthenticate={handleAuthenticate} />
+          }
 
           return (
             <IntlProvider
