@@ -1,4 +1,4 @@
-import { store } from 'controllers/database'
+import { store } from 'database'
 import MessageHistory from 'database/models/MessageHistory'
 import Message from '../../types/message'
 import logger, { Meta } from 'logger'
@@ -144,13 +144,12 @@ class MessageHistoryService {
    */
   async getChannelHistory(serverId: string, channelId: string, limit: number = 100) {
     try {
-      const messages = await store.messageHistory
-        .find<MessageHistory>({ serverId, channelId })
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .exec()
-
+      const messages = await store.messageHistory.find<MessageHistory>({ serverId, channelId })
+      
+      // Sort by createdAt descending and limit
       return messages
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, limit)
     } catch (error) {
       logger.error(`Failed to get channel history`, {
         ...meta('getChannelHistory'),
@@ -167,13 +166,12 @@ class MessageHistoryService {
    */
   async getServerHistory(serverId: string, limit: number = 1000) {
     try {
-      const messages = await store.messageHistory
-        .find<MessageHistory>({ serverId })
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .exec()
-
+      const messages = await store.messageHistory.find<MessageHistory>({ serverId })
+      
+      // Sort by createdAt descending and limit
       return messages
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, limit)
     } catch (error) {
       logger.error(`Failed to get server history`, {
         ...meta('getServerHistory'),

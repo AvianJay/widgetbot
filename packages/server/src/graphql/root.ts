@@ -1,6 +1,6 @@
 import { client } from 'engine'
 import messageHistoryService from 'database/message-history'
-import { isAdmin } from 'modules/admin-auth'
+import { isAdmin } from '../modules/admin-auth'
 
 import server from './models/server'
 import stats from './models/stats'
